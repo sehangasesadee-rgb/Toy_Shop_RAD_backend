@@ -3,6 +3,8 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 interface IReturnRequest extends Document {
   userId: Types.ObjectId;
   orderId: Types.ObjectId;
+  productId: Types.ObjectId;
+  quantity: number;
   reason: string;
   details: string;
   image?: string;
@@ -21,6 +23,18 @@ const returnRequestSchema = new Schema<IReturnRequest>(
       type: Schema.Types.ObjectId,
       ref: "Order",
       required: true,
+    },
+
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
+    },
+
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
     },
 
     reason: {

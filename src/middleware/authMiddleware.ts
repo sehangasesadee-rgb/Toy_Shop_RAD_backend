@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 interface AuthenticatedRequest extends Request {
-  user?: string | JwtPayload;
+  user?: JwtPayload & {
+    userId: string;
+    role: string;
+  };
 }
 
 const authMiddleware = (
@@ -29,15 +32,24 @@ const authMiddleware = (
 
     const decoded = jwt.verify(token, jwtSecret);
 
-    req.user = decoded;
+    if (typeof decoded === "string" || !decoded.userId || !decoded.role) {
+      res.status(401).json({
+        message: "Invalid token payload.",
+      });
+      return;
+    }
+
+    req.user = decoded as JwtPayload & {
+      userId: string;
+      role: string;
+    };
 
     next();
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.log("JWT ERROR:", error.message);
-    } else {
-      console.log("JWT ERROR:", error);
-    }
+    console.log(
+      "JWT ERROR:",
+      error instanceof Error ? error.message : error
+    );
 
     res.status(401).json({
       message: "Invalid or expired token.",
